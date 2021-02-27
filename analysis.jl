@@ -5,6 +5,7 @@ using Pkg
 # Pkg.add("DataFrames")
 # Pkg.add("Query")
 # Pkg.add("Bijections")
+# Pkg.add("OffsetArrays")
 
 using SQLite
 using DBInterface
@@ -12,10 +13,14 @@ using DataFrames
 using Query
 using DataFramesMeta
 using Bijections
+using OffsetArrays
 
 namesDB = SQLite.DB("names.db")
 
 namesDF = DBInterface.execute(namesDB, "SELECT * FROM names") |> DataFrame
+
+firstYear = first(namesDF).year
+lastYear = last(namesDF).year
 
 # get all unique girl names
 girlsDF = unique(@linq namesDF |>
@@ -61,4 +66,10 @@ for row in Tables.rows(namesDF)
                 i = boyBiMap[row.name]
                 Fb[i, getYearIndex(row.year)] = row.num
         end
+end
+
+Ty = OffsetArray(zeros(Int64, nY), firstYear:lastYear)
+
+for row in Tables.rows(namesDF)
+        Ty[row.year] += row.num
 end
