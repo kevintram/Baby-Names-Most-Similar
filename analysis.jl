@@ -72,3 +72,20 @@ Ty = OffsetArray(zeros(Int64, nY), firstYear:lastYear)
 for row in Tables.rows(namesDF)
         Ty[row.year] += row.num
 end
+
+# Returns probability matrix from the given count matrix and year vector.
+function getProbabilityMatrix(F, Ty)
+        nRange = axes(F,1)
+        yearRange = axes(F,2)
+        P = OffsetArray(zeros(length(nRange), length(yearRange)), nRange, yearRange)
+
+        for i = nRange
+                for year = yearRange
+                        P[i,year] = F[i,year] / Ty[year]
+                end
+        end
+        P
+end
+
+Pb = getProbabilityMatrix(Fb, Ty)
+Pg = getProbabilityMatrix(Fg, Ty)
