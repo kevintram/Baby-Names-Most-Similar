@@ -28,12 +28,12 @@ gDF = unique(@linq namesDF |>
         select(:name))
 
 # Get all unique boy names.
-gDF = unique(@linq namesDF |>
+bDF = unique(@linq namesDF |>
         where(:sex .== "M") |>
         select(:name))
 
 nG = nrow(gDF)
-nB = nrow(gDF)
+nB = nrow(bDF)
 nY = nrow(unique(namesDF, [:year]))
 
 function createNameIndexBiMap(df)::Bijection{String, Int32}
@@ -47,7 +47,7 @@ function createNameIndexBiMap(df)::Bijection{String, Int32}
 end;
 
 # bidirectional map of names to the index it corresponds to in Fb. 
-bBM = createNameIndexBiMap(gDF)
+bBM = createNameIndexBiMap(bDF)
 gBM = createNameIndexBiMap(gDF)
 
 # Counts of boy names and girl names. Fb[bBM[name],year] will return the count of the name of the year.
