@@ -22,12 +22,12 @@ namesDF = DBInterface.execute(namesDB, "SELECT * FROM names") |> DataFrame
 firstYear = first(namesDF).year
 lastYear = last(namesDF).year
 
-# get all unique girl names
+# Get all unique girl names.
 girlsDF = unique(@linq namesDF |>
         where(:sex .== "F") |>
         select(:name))
 
-# get all unique boy names
+# Get all unique boy names.
 boysDF = unique(@linq namesDF |>
         where(:sex .== "M") |>
         select(:name))
@@ -46,30 +46,29 @@ function createNameIndexBiMap(df)::Bijection{String, Int32}
         bimap
 end;
 
+# bidirectional map of names to the index it corresponds to in Fb. 
 boyBiMap = createNameIndexBiMap(boysDF)
 girlBiMap = createNameIndexBiMap(girlsDF)
 
-Fb = zeros(Int32, nB, nY)
-Fg = zeros(Int32, nG, nY)
+# Counts of boy names and girl names. Fb[boyBiMap[name],year] will return the count of the name of the year.
+Fb = OffsetArray(zeros(Int32, nB, nY), 1:nB, firstYear:lastYear)
+Fg = OffsetArray(zeros(Int32, nG, nY), 1:nG, firstYear:lastYear)
 
-function getYearIndex(year)
-        year - 1880 + 1
-end
-
-# populate Fb and Fg matrices
+# Populate Fb and Fg matrices.
 for row in Tables.rows(namesDF)
         i = 0
         if (row.sex == "F") 
                 i = girlBiMap[row.name]
-                Fg[i, getYearIndex(row.year)] = row.num
+                Fg[i, row.year] = row.num
         else
                 i = boyBiMap[row.name]
-                Fb[i, getYearIndex(row.year)] = row.num
+                Fb[i, row.year] = row.num
         end
 end
 
 Ty = OffsetArray(zeros(Int64, nY), firstYear:lastYear)
 
+# Populate Ty.
 for row in Tables.rows(namesDF)
         Ty[row.year] += row.num
 end
