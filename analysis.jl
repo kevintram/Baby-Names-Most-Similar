@@ -22,7 +22,7 @@ girlsDF = unique(@linq namesDF |>
         where(:sex .== "F") |>
         select(:name))
 
-# get all unique boys names
+# get all unique boy names
 boysDF = unique(@linq namesDF |>
         where(:sex .== "M") |>
         select(:name))
@@ -44,3 +44,21 @@ end;
 boyBiMap = createNameIndexBiMap(boysDF)
 girlBiMap = createNameIndexBiMap(girlsDF)
 
+Fb = zeros(Int32, nB, nY)
+Fg = zeros(Int32, nG, nY)
+
+function getYearIndex(year)
+        year - 1880 + 1
+end
+
+# populate Fb and Fg matrices
+for row in Tables.rows(namesDF)
+        i = 0
+        if (row.sex == "F") 
+                i = girlBiMap[row.name]
+                Fg[i, getYearIndex(row.year)] = row.num
+        else
+                i = boyBiMap[row.name]
+                Fb[i, getYearIndex(row.year)] = row.num
+        end
+end
