@@ -14,6 +14,7 @@ using Query
 using DataFramesMeta
 using Bijections
 using OffsetArrays
+using LinearAlgebra
 
 namesDB = SQLite.DB("names.db")
 
@@ -85,7 +86,19 @@ function getProbabilityMatrix(F, Ty)
                 end
         end
         P
-end
+end;
 
 Pb = getProbabilityMatrix(Fb, Ty)
 Pg = getProbabilityMatrix(Fg, Ty)
+
+# Returns the matrix with every row normalized.
+function getRowNormalized(P)
+        Q = copy(P)
+        for row in eachrow(Q)
+                normRow = normalize!(row)
+        end
+        Q
+end;
+
+Qb = getRowNormalized(Pb)
+Qg = getRowNormalized(Pg)
