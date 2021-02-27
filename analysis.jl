@@ -23,17 +23,17 @@ firstYear = first(namesDF).year
 lastYear = last(namesDF).year
 
 # Get all unique girl names.
-girlsDF = unique(@linq namesDF |>
+gDF = unique(@linq namesDF |>
         where(:sex .== "F") |>
         select(:name))
 
 # Get all unique boy names.
-boysDF = unique(@linq namesDF |>
+gDF = unique(@linq namesDF |>
         where(:sex .== "M") |>
         select(:name))
 
-nG = nrow(girlsDF)
-nB = nrow(boysDF)
+nG = nrow(gDF)
+nB = nrow(gDF)
 nY = nrow(unique(namesDF, [:year]))
 
 function createNameIndexBiMap(df)::Bijection{String, Int32}
@@ -47,10 +47,10 @@ function createNameIndexBiMap(df)::Bijection{String, Int32}
 end;
 
 # bidirectional map of names to the index it corresponds to in Fb. 
-boyBiMap = createNameIndexBiMap(boysDF)
-girlBiMap = createNameIndexBiMap(girlsDF)
+bBM = createNameIndexBiMap(gDF)
+gBM = createNameIndexBiMap(gDF)
 
-# Counts of boy names and girl names. Fb[boyBiMap[name],year] will return the count of the name of the year.
+# Counts of boy names and girl names. Fb[bBM[name],year] will return the count of the name of the year.
 Fb = OffsetArray(zeros(Int32, nB, nY), 1:nB, firstYear:lastYear)
 Fg = OffsetArray(zeros(Int32, nG, nY), 1:nG, firstYear:lastYear)
 
@@ -58,10 +58,10 @@ Fg = OffsetArray(zeros(Int32, nG, nY), 1:nG, firstYear:lastYear)
 for row in Tables.rows(namesDF)
         i = 0
         if (row.sex == "F") 
-                i = girlBiMap[row.name]
+                i = gBM[row.name]
                 Fg[i, row.year] = row.num
         else
-                i = boyBiMap[row.name]
+                i = bBM[row.name]
                 Fb[i, row.year] = row.num
         end
 end
