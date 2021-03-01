@@ -111,3 +111,34 @@ end;
 
 Qb = getRowNormalized(Pb)
 Qg = getRowNormalized(Pg)
+
+
+# n is the number of names
+# returns the parition size array
+function getPartitionNAxis(n)
+        blockSize = convert(Int64, floor(n / 10))
+        bBlockFirstAxis = [
+                blockSize, 
+                blockSize, 
+                blockSize, 
+                blockSize, 
+                blockSize, 
+                blockSize, 
+                blockSize, 
+                blockSize, 
+                blockSize, 
+                blockSize + n % 10
+        ]
+end;
+
+# partition the matrices
+bBlocked = BlockArray(Qb, getPartitionNAxis(nB), [nY])
+gBlocked = BlockArray(Qg, getPartitionNAxis(nG), [nY])
+
+# compute the dot product between every boy girl pair for every matrix
+# by doing A * B^T (doing transpose of T will make the resultant matrix, C
+# a matrix of dot products between every pair where C[i,j] corresponds
+# to the dot product between the pairs of names A[i] and B[j]).
+
+
+# keep track of the max dot product and its indices between every boy girl pair
