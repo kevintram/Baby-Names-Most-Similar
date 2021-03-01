@@ -6,6 +6,7 @@ using Pkg
 # Pkg.add("Query")
 # Pkg.add("Bijections")
 # Pkg.add("OffsetArrays")
+# Pkg.add("BlockArrays")
 
 using SQLite
 using DBInterface
@@ -15,6 +16,7 @@ using DataFramesMeta
 using Bijections
 using OffsetArrays
 using LinearAlgebra
+using BlockArrays
 
 namesDB = SQLite.DB("names.db")
 
@@ -52,21 +54,27 @@ bBM = createNameIndexBiMap(bDF)
 gBM = createNameIndexBiMap(gDF)
 
 # Counts of boy names and girl names. Fb[bBM[name],year] will return the count of the name of the year.
-Fb = OffsetArray(zeros(Int32, nB, nY), 1:nB, firstYear:lastYear)
-Fg = OffsetArray(zeros(Int32, nG, nY), 1:nG, firstYear:lastYear)
+Fb = zeros(Int32, nB, nY)
+Fg = zeros(Int32, nG, nY)
+
+
+function getYearIndex(year) 
+        year - firstYear + 1
+end
 
 # Populate Fb and Fg matrices.
 for row in Tables.rows(namesDF)
         i = 0
         if (row.sex == "F") 
                 i = gBM[row.name]
-                Fg[i, row.year] = row.num
+                Fg[i, getYearIndex(row.year)] = row.num
         else
                 i = bBM[row.name]
-                Fb[i, row.year] = row.num
+                Fb[i, getYearIndex(row.year)] = row.num
         end
 end
 
+#indexed by year (so no need to use getYearIndex())
 Ty = OffsetArray(zeros(Int64, nY), firstYear:lastYear)
 
 # Populate Ty.
@@ -77,12 +85,13 @@ end
 # Returns probability matrix from the given count matrix and year vector.
 function getProbabilityMatrix(F, Ty)
         nRange = axes(F,1)
-        yearRange = axes(F,2)
-        P = OffsetArray(zeros(length(nRange), length(yearRange)), nRange, yearRange)
+        yearRange = axes(Ty,1)
+
+        P = zeros(length(nRange), length(yearRange))
 
         for i = nRange
                 for year = yearRange
-                        P[i,year] = F[i,year] / Ty[year]
+                        P[i,getYearIndex(year)] = F[i,getYearIndex(year)] / Ty[year]
                 end
         end
         P
