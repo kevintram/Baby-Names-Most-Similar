@@ -1,12 +1,13 @@
 using Pkg
 
-Pkg.add("SQLite")
-Pkg.add("DBInterface")
-Pkg.add("DataFrames")
-Pkg.add("Query")
-Pkg.add("Bijections")
-Pkg.add("OffsetArrays")
-Pkg.add("BlockArrays")
+# Pkg.add("SQLite")
+# Pkg.add("DBInterface")
+# Pkg.add("DataFrames")
+# Pkg.add("Query")
+# Pkg.add("Bijections")
+# Pkg.add("OffsetArrays")
+# Pkg.add("BlockArrays")
+# Pkg.add("Gadfly")
 
 using SQLite
 using DBInterface
@@ -17,6 +18,7 @@ using Bijections
 using OffsetArrays
 using LinearAlgebra
 using BlockArrays
+# using Gadfly
 
 namesDB = SQLite.DB("names.db")
 
@@ -138,20 +140,31 @@ gBlocked = BlockArray(Qg, getPartitionNAxis(nG), [nY])
 # by doing A * B^T (doing transpose of T will make the resultant matrix, C
 # a matrix of dot products between every pair where C[i,j] corresponds
 # to the dot product between the pairs of names A[i] and B[j]).
+
+#block sizes for adjusting index later
+bBlockSize = convert(Int64, floor(nB / 10))
+gBlockSize = convert(Int64, floor(nG / 10))
 maxVal = 0
-maxIndex = CartesianIndex(1, 1) # first is boy name, second is girl name
+maxIndex = (0,0) # first is boy name, second is girl name
 for i in 1:10
         bBlock = getblock(bBlocked, i, 1)
         for j in 1:10
                 gBlock = getblock(gBlocked, j, 1)
                 product = bBlock * transpose(gBlock)
 
-                max = findmax(product)
+                m = findmax(product)
+                val = m[1]
+                index = (
+                        m[2][1] + ((i - 1) * bBlockSize),
+                        m[2][2] + ((j - 1) * gBlockSize)
+                )
+
                 global maxVal
                 global maxIndex
-                if (max[1] > maxVal)
-                        maxVal = max[1]
-                        maxIndex = max[2]
+
+                if (val > maxVal)
+                        maxVal = val
+                        maxIndex = index
                 end
         end
 end
